@@ -385,11 +385,6 @@ local function truncate_text_to_size(txt, size, width, trail)
     end
     return "", true
 end
-local function assign_value_to_player(pid)
-    local boss = get_boss(pid)
-    if boss == pid then return boss * 32 end
-    return (boss == -1 ? 32 : boss) * 33 + (pid + 1)
-end
 local function sort_players(ply_list)
     local value_list = {}
     for ply_list as pid do
@@ -403,9 +398,6 @@ local function sort_players(ply_list)
     table.sort(ply_list, function(p1,p2)
         return value_list[p1] < value_list[p2]
     end)
-    -- table.sort(ply_list, function(p1,p2)
-    --     return assign_value_to_player(p1) < assign_value_to_player(p2)
-    -- end)
     return ply_list
 end
 local function get_session_label()

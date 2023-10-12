@@ -1,5 +1,5 @@
 --[[
-CollectibleHelper by aaronlink127#0127 v1.07 (for GTA Online v1.67)
+CollectibleHelper by aaronlink127 v1.07 (for GTA Online v1.67)
     Shows blips on the map for the following collectibles
     - Action Figures
     - Playing Cards
@@ -10,7 +10,7 @@ CollectibleHelper by aaronlink127#0127 v1.07 (for GTA Online v1.67)
     - LD Organics Product
     - Snowmen
 ]]--
-util.require_natives("1663599433")
+util.require_natives("2944b")
 
 local tunable_collectables_ld_organics, tunable_collectables_trick_or_treat, tunable_collectables_snowmen
 util.create_thread(function()

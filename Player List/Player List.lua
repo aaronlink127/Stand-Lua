@@ -1,3 +1,7 @@
+--[[
+Player List by aaronlink127 v0.73 (for GTA Online v1.67)
+    Provides a customizable Player List akin to the one built into the game.
+]]
 util.require_natives("2944b")
 
 local function toast(str, toast_flag)

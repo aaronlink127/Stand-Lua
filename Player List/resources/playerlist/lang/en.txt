@@ -1,0 +1,42 @@
+; Lines beginning in a semicolon are comments
+; New lines can be escaped with a backslash (\), meaning the new line will be kept in the string and will not break into the next label. If you've worked with C/C++ macros, this is similar.
+; Spaces around the colon will be stripped
+; For non-english translations, labels not present will fall back to english.
+; Note that not all labels are present here, as they use Stand's built-in translations.
+
+SHOW_LIST: Show List
+HGHLGHT_PLY: Highlight Selected Players
+HGHLGHT_PLY_H: Highlights players that will be affected by the focused menu option. (i.e Players tab)
+NOVPLYLST: Disable Vanilla List
+NOVPLYLST_H: Changes the behavior of the player list button to always open the expanded radar instead.
+ACCS: Accessories
+SHOWRP: Show RP
+SHOWRP_H: Shows the player's RP.
+SHOWRP_2: Hide While Talking
+SHOWRP_2_H: Hides the RP icon if the person is speaking, similar to vanilla behavior.
+SHOWORG: Show Organization/MC
+SHOWORG_H: Shows an icon indicating whether the player is in a Motorcycle Club or a CEO/VIP.
+SHOWGEOLOC: Show Country Flag
+SHOWGEOLOC_H: Shows a flag indicating the country from the player's GeoIP information.
+SHOWLANG: Show Language Flag
+SHOWLANG_H: Shows a flag indicating which language the player has the game set to.
+SHOWPAD: Show Controller
+SHOWPAD_H: Shows an icon indicating the method the player is using to control the game.
+SHOWFMST8: Show Connecting Symbol
+SHOWFMST8_H: Shows an icon next to players who haven't yet joined freemode.
+SHOWHEAD: Show Player Heads
+SHOWHEAD_H: Show an icon representing the player's ped.\
+Note that this uses native functions to draw the ped, and as such will not respect "Stream-Proof Rendering"
+CREW: Crew Tags
+CREWVIS: Show Crew Tags
+CREWCLR:  Crew Tag Uses Crew Colour
+CREWTXTSCL: Crew Scale
+CREWTXTOFFS: Crew Offset
+SHOWVOICE: Show Voice
+SHOWVOICE_2: When Talking
+TXTSCL: Text Scale
+RPTXTSCL: RP Text Scale
+RPTXTOFFS: RP Text X Offset
+PLYLSTW: Player List Width
+PLYLSTSCL: Player List Scale
+PLYLSTBARW: Player List Bar Width

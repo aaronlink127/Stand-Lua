@@ -217,7 +217,7 @@ local aPtr = bPtr+4
                 return flag_tex
             end
             flag_tex_ids[ctry] = -1
-            async_http.init("https://s.rsg.sc/sc/images/common/flags/24/"..ctry..".png", "", function(response, header, status_code)
+            async_http.init($"https://s.rsg.sc/sc/images/common/flags/24/{ctry}.png", "", function(response, header, status_code)
                 if status_code != 200 then
                     return
                 end
@@ -355,17 +355,17 @@ local function getClanDesc(pid)
     if hasDesc then
         return {
             id = memory.read_int(clan_desc),
-            clanName = memory.read_string(clan_desc+8),
+            clanName = memory.read_string(clan_desc+0x8),
             clanTag = memory.read_string(clan_desc+0x88),
-            memberCount = memory.read_int(clan_desc+144),
-            isSystemClan = memory.read_int(clan_desc+152) ~= 0,
-            isOpenClan = memory.read_int(clan_desc+160) ~= 0,
-            rankName = memory.read_string(clan_desc+168),
-            rankOrder = memory.read_int(clan_desc+240),
-            createdTime = memory.read_int(clan_desc+248),
-            clanColorRed = memory.read_int(clan_desc+256),
-            clanColorGreen = memory.read_int(clan_desc+264),
-            clanColorBlue = memory.read_int(clan_desc+272)
+            memberCount = memory.read_int(clan_desc+0x90),
+            isSystemClan = memory.read_int(clan_desc+0x98) ~= 0,
+            isOpenClan = memory.read_int(clan_desc+0xA0) ~= 0,
+            rankName = memory.read_string(clan_desc+0xA8),
+            rankOrder = memory.read_int(clan_desc+0xF0),
+            createdTime = memory.read_int(clan_desc+0xF8),
+            clanColorRed = memory.read_int(clan_desc+0x100),
+            clanColorGreen = memory.read_int(clan_desc+0x108),
+            clanColorBlue = memory.read_int(clan_desc+0x110)
         }
     end
 end
@@ -489,6 +489,7 @@ util.create_tick_handler(function()
     for k,pid in ply_list do
         local ply_ped = PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(pid)
         local is_me = usr == pid
+        local stats_ready = players.are_stats_ready(pid) or is_me
         local nextPenY = penY + icon_h
         local is_cursor_here = false
         if cursor_sel and cur_y <= nextPenY then
@@ -602,7 +603,7 @@ util.create_tick_handler(function()
         end
         if show_lang then
             local texAsset
-            if (is_me or players.are_stats_ready(pid)) and (texAsset := getFlagTexture(lang_ids[players.get_language(pid)+1])) then
+            if stats_ready and (texAsset := getFlagTexture(lang_ids[players.get_language(pid)+1])) then
                 directx.draw_texture(texAsset, icon_w * 0.8 / 2, icon_h, 0.5, 0.5, right_pen, accY, 0, 1,1,1,1)
             else
                 directx.draw_texture(load_tex, icon_w / 2, 0, 0.5, 0.5, right_pen, accY, os.clock() / 2, 1,1,1,1)
@@ -626,7 +627,7 @@ util.create_tick_handler(function()
             right_pen = right_pen - icon_w
             acc_w += icon_w
         end
-        if show_pad then
+        if show_pad and stats_ready then
             directx.draw_texture(players.is_using_controller(pid) and controller_tex or mouse_tex, icon_w / 2, icon_h, 0.5, 0.5, right_pen, accY, 0, 1,1,1,1)
             right_pen = right_pen - icon_w
             acc_w += icon_w

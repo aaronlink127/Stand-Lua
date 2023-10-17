@@ -583,8 +583,10 @@ util.create_tick_handler(function()
         local is_talking = is_me ? NETWORK.NETWORK_IS_PUSH_TO_TALK_ACTIVE() : NETWORK.NETWORK_IS_PLAYER_TALKING(pid)
         local rank = players.get_rank(pid)
         if show_rp ~= 1 and not (show_rp == 2 and (is_talking or show_voice == 3)) then
+            local rw, rh = directx.get_text_size(rank, 60, gamer_font)
+            rw = math.max(rw, 1)
             directx.draw_texture(rp_tex, icon_w / 2, icon_h, 0.5, 0.5, right_pen, accY, 0, fm_r,fm_g,fm_b,fm_a)
-            directx.draw_text(right_pen + -0.14 * icon_w, accY + 0.06 * icon_h, rank, ALIGN_CENTRE, 30*icon_h, 1,1,1,1, false, gamer_font)
+            directx.draw_text(right_pen + -0.11 * icon_w, accY + 0.06 * icon_h, rank, ALIGN_CENTRE, 30 * icon_h / rw, 1,1,1,1, false, gamer_font)
             right_pen = right_pen - icon_w
             acc_w += icon_w
         end

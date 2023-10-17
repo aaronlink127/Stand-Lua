@@ -489,6 +489,7 @@ util.create_tick_handler(function()
         playerHeads = getPedHeadshotIds()
         HUD.SET_TEXT_RENDER_ID(1)
         HUD.SET_WIDESCREEN_FORMAT(1)
+        GRAPHICS.SET_SCRIPT_GFX_DRAW_ORDER(8)
         GRAPHICS.SET_SCRIPT_GFX_DRAW_BEHIND_PAUSEMENU(true)
         GRAPHICS.DRAW_RECT(posX + icon_w/2,penY + total_h/2, icon_w, total_h, 0, 0, 0, 255, false)
     end
@@ -658,11 +659,10 @@ util.create_tick_handler(function()
         local name_scale = text_scale * icon_h
         local name = players.get_name(pid)
         local tags = players.get_tags_string(pid)
+        local tag_w = 0
         if tags ~= "" then
             tags = add_brackets(tags)
-        end
-        local tag_w = directx.get_text_size(tags, name_scale)
-        if tags ~= "" then
+            tag_w = directx.get_text_size(tags, name_scale)
             tags = " "..tags
         end
         if clanDesc then

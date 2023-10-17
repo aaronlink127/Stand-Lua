@@ -13,6 +13,8 @@ if not io.isdir(asset_dir) then
     toast("Assets not found, exiting!", TOAST_DEFAULT | TOAST_LOGGER)
     return
 end
+local gamer_font = directx.create_font(asset_dir.."gamer.spritefont")
+local rockstar_font = directx.create_font(asset_dir.."rockstartag.spritefont")
 local lang_dir = asset_dir.."lang/"
 local function readFile(path, binary = false)
     local f<close> = io.open(path, binary ? "rb" : "r")
@@ -279,8 +281,8 @@ local aPtr = bPtr+4
             crewRoot:toggle(lbls.CREWVIS, {"playerlistcrew"}, "", function(st) showCrew = st end, showCrew)
             local tagUseColor = false
             crewRoot:toggle(lbls.CREWCLR, {"playerlistcrewcolour", "playerlistcrewcolor"}, "", function(st) tagUseColor = st end, tagUseColor)
-            local crewScale = 24
-            crewRoot:slider(lbls.CREWTXTSCL, {"playerlistcrewscale"}, "", 0, 100, crewScale, 1, function(val) crewScale = val end)
+            -- local crewScale = 24
+            -- crewRoot:slider(lbls.CREWTXTSCL, {"playerlistcrewscale"}, "", 0, 100, crewScale, 1, function(val) crewScale = val end)
             local crewOffset = 0
             crewRoot:slider(lbls.CREWTXTOFFS, {"playerlistcrewoffset"}, "", -32768, 32767, 0, 1, function(val) crewOffset = val / 32 end)
         --endregion
@@ -289,10 +291,10 @@ local aPtr = bPtr+4
             local textList = appearanceList:list(L_TEXT)
             local text_scale = 24
             textList:slider(lbls.TXTSCL, {"playerlisttextscale"}, "", 1, 32767, text_scale, 1, function(val) text_scale = val end)
-            local rp_scale = 24
-            textList:slider(lbls.RPTXTSCL, {"playerlistrptextscale"}, "", 1, 32767, rp_scale, 1, function(val) rp_scale = val end)
-            local rp_text_offset = 0
-            textList:slider(lbls.RPTXTOFFS, {"playerlistrptextxoffset"}, "", -32768, 32767, rp_text_offset, 1, function(val) rp_text_offset = val / 100 end)
+            -- local rp_scale = 24
+            -- textList:slider(lbls.RPTXTSCL, {"playerlistrptextscale"}, "", 1, 32767, rp_scale, 1, function(val) rp_scale = val end)
+            -- local rp_text_offset = 0
+            -- textList:slider(lbls.RPTXTOFFS, {"playerlistrptextxoffset"}, "", -32768, 32767, rp_text_offset, 1, function(val) rp_text_offset = val / 100 end)
         --endregion
         local posList = appearanceList:list(L_POS, {"playerlistpos"})
         local posX = 0
@@ -580,10 +582,8 @@ util.create_tick_handler(function()
         local is_talking = is_me ? NETWORK.NETWORK_IS_PUSH_TO_TALK_ACTIVE() : NETWORK.NETWORK_IS_PLAYER_TALKING(pid)
         local rank = players.get_rank(pid)
         if show_rp ~= 1 and not (show_rp == 2 and (is_talking or show_voice == 3)) then
-            local r_w, r_h = directx.get_text_size(rank,rp_scale*2)
-            r_w = math.max(1,r_w)
             directx.draw_texture(rp_tex, icon_w / 2, icon_h, 0.5, 0.5, right_pen, accY, 0, fm_r,fm_g,fm_b,fm_a)
-            directx.draw_text(right_pen + rp_text_offset * icon_w, accY, rank, ALIGN_CENTRE, rp_scale*icon_h/r_w, 1,1,1,1)
+            directx.draw_text(right_pen + -0.14 * icon_w, accY + 0.06 * icon_h, rank, ALIGN_CENTRE, 30*icon_h, 1,1,1,1, false, gamer_font)
             right_pen = right_pen - icon_w
             acc_w += icon_w
         end
@@ -697,7 +697,7 @@ util.create_tick_handler(function()
                 clan_b = 1
             end
             directx.draw_texture(clanDesc.isOpenClan and crew_2_tex or crew_1_tex, icon_w, icon_h / 2, 0.5, 0.5, left_offset + posX + text_w + crewOffset * icon_w + icon_w,penY + icon_h / 2, 0, clan_r, clan_g, clan_b,1)
-            directx.draw_text(left_offset + posX + text_w + crewOffset * icon_w + icon_w,penY + icon_h / 2,clanDesc.clanTag:upper(),ALIGN_CENTRE,icon_h * crewScale,txt_col,txt_col,txt_col,1)
+            directx.draw_text(left_offset + posX + text_w + crewOffset * icon_w + icon_w - icon_w * 0.05,penY + icon_h / 2 + icon_h * 0.05,clanDesc.clanTag,ALIGN_CENTRE,icon_h * 28,txt_col,txt_col,txt_col,1, false, rockstar_font)
         end
         penY = nextPenY
     end

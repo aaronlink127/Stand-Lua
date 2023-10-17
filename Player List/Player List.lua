@@ -396,11 +396,12 @@ local function sort_players(ply_list)
     for ply_list as pid do
         local boss = get_boss(pid)
         if boss == pid then
-            value_list[pid] = boss
+            value_list[pid] = boss * 33
         else
             value_list[pid] = (boss == -1 ? 32 : boss) * 33 + (pid + 1)
         end
     end
+    
     table.sort(ply_list, function(p1,p2)
         return value_list[p1] < value_list[p2]
     end)

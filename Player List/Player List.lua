@@ -500,13 +500,18 @@ util.create_tick_handler(function()
     local voice_st = math.floor(os.clock()*6) % 4
     local usr = players.user()
     local total_h = icon_h * #ply_list
+    local aspect, pedHeadW, pedHeadH
     if show_head then
+        aspect = GRAPHICS.GET_ASPECT_RATIO(true)
+        local pedHeadBgX, pedHeadBgY = directx.pos_hud_to_client(posX + icon_w/2, penY + total_h/2)
+        local pedHeadBgW, pedHeadBgH = directx.size_hud_to_client(icon_w, total_h)
+        pedHeadW, pedHeadH = directx.size_hud_to_client(icon_w, icon_h)
         playerHeads = getPedHeadshotIds()
         HUD.SET_TEXT_RENDER_ID(1)
-        HUD.SET_WIDESCREEN_FORMAT(1)
+        HUD.SET_WIDESCREEN_FORMAT(0)
         GRAPHICS.SET_SCRIPT_GFX_DRAW_ORDER(8)
         GRAPHICS.SET_SCRIPT_GFX_DRAW_BEHIND_PAUSEMENU(true)
-        GRAPHICS.DRAW_RECT(posX + icon_w/2,penY + total_h/2, icon_w, total_h, 0, 0, 0, 255, false)
+        GRAPHICS.DRAW_RECT(pedHeadBgX, pedHeadBgY, pedHeadBgW, pedHeadBgH, 0, 0, 0, 255, false)
     end
     local spectate_stack = 0
     for k,pid in ply_list do
@@ -548,7 +553,8 @@ util.create_tick_handler(function()
                 if pedHead then
                     local pedHeadTex = PED.GET_PEDHEADSHOT_TXD_STRING(playerHeads[pid])
                     if pedHeadTex then
-                        GRAPHICS.DRAW_SPRITE(pedHeadTex, pedHeadTex, left_offset + posX + icon_w/2,penY + icon_h/2, icon_w, icon_h, 0, 255, 255, 255, 255, false, 0)
+                        local pedHeadX, pedHeadY = directx.pos_hud_to_client(left_offset + posX + icon_w/2, penY + icon_h/2)
+                        GRAPHICS.DRAW_SPRITE(pedHeadTex, pedHeadTex, pedHeadX, pedHeadY, pedHeadW, pedHeadH, 0, 255, 255, 255, 255, false, 0)
                     end
                 end
             end
@@ -718,6 +724,10 @@ util.create_tick_handler(function()
             directx.draw_text(left_offset + posX + text_w + crewOffset * icon_w + icon_w - icon_w * 0.05,penY + icon_h / 2 + icon_h * 0.05,clanDesc.clanTag,ALIGN_CENTRE,icon_h * 25,txt_col,txt_col,txt_col,1, false, rockstar_font)
         end
         penY = nextPenY
+    end
+    if show_head then
+        GRAPHICS.SET_SCRIPT_GFX_DRAW_ORDER(4)
+        GRAPHICS.SET_SCRIPT_GFX_DRAW_BEHIND_PAUSEMENU(false)
     end
     return true
 end)

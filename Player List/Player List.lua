@@ -347,6 +347,7 @@ local aPtr = bPtr+4
 menu.apply_command_states()
 --endregion
 local function getGamerHandle(pid)
+    if pid ~= players.user() and not NETWORK.NETWORK_IS_SESSION_STARTED() then return end
     local gamerHandle = memory.alloc(13)
     NETWORK.NETWORK_HANDLE_FROM_PLAYER(pid, gamerHandle, 13)
     return gamerHandle
@@ -354,8 +355,8 @@ end
 local clan_desc = memory.alloc(35*8)
 local function getClanDesc(pid)
     -- when the game does not consider it to be MP, the game will assume local player. this is to avoid that behavior.
-    if pid ~= players.user() and not NETWORK.NETWORK_IS_SESSION_STARTED() then return end
     local gamerHandle = getGamerHandle(pid)
+    if not gamerHandle then return end
     local hasDesc = NETWORK.NETWORK_CLAN_PLAYER_GET_DESC(clan_desc, 35, gamerHandle)
     -- local clan_desc = memory.script_global(1575090+1+pid*35)
     if hasDesc then
@@ -587,7 +588,7 @@ util.create_tick_handler(function()
             local rw, rh = directx.get_text_size(rank, 60, gamer_font)
             rw = math.max(rw, 1)
             directx.draw_texture(rp_tex, icon_w / 2, icon_h, 0.5, 0.5, right_pen, accY, 0, fm_r,fm_g,fm_b,fm_a)
-            directx.draw_text(right_pen + -0.11 * icon_w, accY + 0.06 * icon_h, rank, ALIGN_CENTRE, 30 * icon_h / rw, 1,1,1,1, false, gamer_font)
+            directx.draw_text(right_pen + -0.13 * icon_w, accY + 0.06 * icon_h, rank, ALIGN_CENTRE, 30 * icon_h / rw, 1,1,1,1, false, gamer_font)
             right_pen = right_pen - icon_w
             acc_w += icon_w
         end
@@ -700,7 +701,7 @@ util.create_tick_handler(function()
                 clan_b = 1
             end
             directx.draw_texture(clanDesc.isOpenClan and crew_2_tex or crew_1_tex, icon_w, icon_h / 2, 0.5, 0.5, left_offset + posX + text_w + crewOffset * icon_w + icon_w,penY + icon_h / 2, 0, clan_r, clan_g, clan_b,1)
-            directx.draw_text(left_offset + posX + text_w + crewOffset * icon_w + icon_w - icon_w * 0.05,penY + icon_h / 2 + icon_h * 0.05,clanDesc.clanTag,ALIGN_CENTRE,icon_h * 28,txt_col,txt_col,txt_col,1, false, rockstar_font)
+            directx.draw_text(left_offset + posX + text_w + crewOffset * icon_w + icon_w - icon_w * 0.05,penY + icon_h / 2 + icon_h * 0.05,clanDesc.clanTag,ALIGN_CENTRE,icon_h * 25,txt_col,txt_col,txt_col,1, false, rockstar_font)
         end
         penY = nextPenY
     end

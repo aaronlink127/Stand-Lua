@@ -5,7 +5,7 @@ Player List by aaronlink127 v0.73 (for GTA Online v1.67)
 util.require_natives("2944b")
 
 local function toast(str, toast_flag)
-    util.toast($"[{SCRIPT_NAME}] {str}", toast_flag)
+    util.toast($"[{SCRIPT_NAME}] {str}", toast_flag ?? TOAST_DEFAULT)
 end
 local curLang = lang.get_current()
 local asset_dir = filesystem.resources_dir().."playerlist/"
@@ -80,6 +80,16 @@ if not lang.is_automatically_translated(curLang) and curLang != "en" then
         if not langHash then continue end
         lang.translate(langHash, value)
     end
+end
+
+
+local function toast_label(str, toast_flag)
+    toast(lang.get_localised(str), toast_flag)
+end
+local function addInternetWarning(s)
+    if async_http.have_access() then return s end
+    s = lang.get_localised(s)
+    return $"{s}\n\n{lang.get_localised(lbls.ERRNOINTERNET)}"
 end
 
 setmetatable(lbls, {
@@ -268,9 +278,11 @@ local aPtr = bPtr+4
             local show_org = true
             accessoryList:toggle(lbls.SHOWORG, {"playerlistshoworg"}, lbls.SHOWORG_H, function(st) show_org = st end, show_org)
             local show_geoloc = false
-            accessoryList:toggle(lbls.SHOWGEOLOC, {"playerlistshowcntry"}, lbls.SHOWGEOLOC_H, function(st) show_geoloc = st end, show_geoloc)
+            accessoryList:toggle(lbls.SHOWGEOLOC, {"playerlistshowcntry"}, addInternetWarning(lbls.SHOWGEOLOC_H), function(st) show_geoloc = st
+            end, show_geoloc)
             local show_lang = false
-            accessoryList:toggle(lbls.SHOWLANG, {"playerlistshowlang"}, lbls.SHOWLANG_H, function(st) show_lang = st end, show_lang)
+            accessoryList:toggle(lbls.SHOWLANG, {"playerlistshowlang"}, addInternetWarning(lbls.SHOWLANG_H), function(st) show_lang = st
+            end, show_lang)
             local show_pad = false
             accessoryList:toggle(lbls.SHOWPAD, {"playerlistshowpad"}, lbls.SHOWPAD_H, function(st) show_pad = st end, show_pad)
             local show_fm_status = false

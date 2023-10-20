@@ -223,15 +223,17 @@ local aPtr = bPtr+4
                 return flag_tex
             end
             flag_tex_ids[ctry] = -1
-            async_http.init($"https://s.rsg.sc/sc/images/common/flags/24/{ctry}.png", "", function(response, header, status_code)
-                if status_code != 200 then
-                    return
-                end
-                local f<close> = io.open(dir, "wb")
-                f:write(response)
-                flag_tex_ids[ctry] = nil
-            end, function() end)
-            async_http.dispatch()
+            if async_http.have_access() then
+                async_http.init($"https://s.rsg.sc/sc/images/common/flags/24/{ctry}.png", "", function(response, header, status_code)
+                    if status_code != 200 then
+                        return
+                    end
+                    local f<close> = io.open(dir, "wb")
+                    f:write(response)
+                    flag_tex_ids[ctry] = nil
+                end, function() end)
+                async_http.dispatch()
+            end
         end
     end
 --endregion

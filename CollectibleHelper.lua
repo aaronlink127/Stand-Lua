@@ -1,14 +1,18 @@
 --[[
-CollectibleHelper by aaronlink127 v1.07 (for GTA Online v1.67)
+CollectibleHelper by aaronlink127 v1.08 (for GTA Online v1.67)
     Shows blips on the map for the following collectibles
-    - Action Figures
-    - Playing Cards
-    - Signal Jammers
-    - Los Santos Slasher Clues
-    - Movie Props (exterior only)
-    - Jack O' Lanterns
-    - LD Organics Product
-    - Snowmen
+    - SP
+      - Letter Scraps
+      - Spaceship Parts
+    - MP
+      - Action Figures
+      - Playing Cards
+      - Signal Jammers
+      - Los Santos Slasher Clues
+      - Movie Props (exterior only)
+      - Jack O' Lanterns
+      - LD Organics Product
+      - Snowmen
 ]]--
 util.require_natives("2944b")
 
@@ -23,6 +27,33 @@ local function readTunableBool(idx)
     return memory.read_int(memory.script_global(tunableBase+idx)) ~= 0
 end
 local tunable_ld
+
+local letterscraps = {}
+setmetatable(letterscraps, {
+    __index=function(self, idx)
+        local sl = memory.script_local("letterScraps", 55 + 1 + (idx - 1) * 11 + 3)
+        if sl == 0 then
+            return v3()
+        end
+        return v3(sl)
+    end,
+    __len=function(self)
+        return 50
+    end
+})
+local spaceshipparts = {}
+setmetatable(spaceshipparts, {
+    __index=function(self, idx)
+        local sl = memory.script_local("spaceshipParts", 53 + 1 + (idx - 1) * 11 + 3)
+        if sl == 0 then
+            return v3()
+        end
+        return v3(sl)
+    end,
+    __len=function(self)
+        return 50
+    end
+})
 local peyotes = {
     v3(171.4769, -1925.586, 20.156),
     v3(-234.541, -1516.663, 31.296),
@@ -734,6 +765,12 @@ local function has_action_figure(fig_id)
     end
     return STATS.GET_PACKED_STAT_BOOL_CODE(26811 + fig_id, -1)
 end
+local function is_mp()
+    return util.is_session_started()
+end
+local function is_sp()
+    return not util.is_session_started()
+end
 local function has_playing_card(card_id)
     return STATS.GET_PACKED_STAT_BOOL_CODE(26911 + card_id, -1)
 end
@@ -742,7 +779,7 @@ local function has_movie_prop(movie_prop_id)
     return STATS.GET_PACKED_STAT_BOOL_CODE(stat_id, -1)
 end
 local function can_lantern()
-    if tunable_collectables_trick_or_treat then
+    if tunable_collectables_trick_or_treat and is_mp() then
         return readTunableBool(tunable_collectables_trick_or_treat)
     end
 end
@@ -754,15 +791,28 @@ local function has_lantern(lntrn_id)
     return STATS.GET_PACKED_STAT_BOOL_CODE(stat, -1)
 end
 local function can_ld_product()
-    if tunable_collectables_ld_organics then
+    if tunable_collectables_ld_organics and is_mp() then
         return readTunableBool(tunable_collectables_ld_organics)
     end
+end
+
+local function can_letterscrap()
+    return SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(util.joaat("letterScraps"))
+end
+local function has_letterscrap(scrap_id)
+    return memory.read_int(memory.script_global(113810+10052+122 + (scrap_id) // 32)) & (1 << (scrap_id % 32)) ~= 0
+end
+local function can_spaceshippart()
+    return SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(util.joaat("spaceshipParts"))
+end
+local function has_spaceshippart(part_id)
+    return memory.read_int(memory.script_global(113810+10052+125 + (part_id) // 32)) & (1 << (part_id % 32)) ~= 0
 end
 local function has_ld_product(prod_id)
     return STATS.GET_PACKED_STAT_BOOL_CODE(34262 + prod_id, -1)
 end
 local function can_snowmen()
-    if tunable_collectables_snowmen then
+    if tunable_collectables_snowmen and is_mp() then
         return readTunableBool(tunable_collectables_snowmen)
     end
 end
@@ -785,12 +835,12 @@ end
 local addNormalCollectible
 do
     local blip_pool = {}
-    function addNormalCollectible(blip_sprite, blip_name, name_for_config, positions, min_id, has_fn, can_col_fn, explore_dist, clr)
+    function addNormalCollectible(parent, blip_sprite, blip_name, name_for_config, positions, min_id, has_fn, can_col_fn, explore_dist, clr, scale = 1)
         local pool_id = #blip_pool+1
-        local coll_info = {{},  blip_sprite, blip_name, positions, min_id, #positions - 1 + min_id, has_fn, can_col_fn, explore_dist^2, clr, nil, false}
-        local mnu = menu.toggle(my_root, util.get_label_text(blip_name), {}, "", function(st) coll_info[12] = not st end, true)
+        local coll_info = {{},  blip_sprite, blip_name, positions, min_id, #positions - 1 + min_id, has_fn, can_col_fn, explore_dist^2, clr, scale, nil, false}
+        local mnu = menu.toggle(parent, util.get_label_text(blip_name), {}, "", function(st) coll_info[13] = not st end, true)
         mnu.name_for_config = name_for_config
-        coll_info[11] = mnu
+        coll_info[12] = mnu
         blip_pool[pool_id] = coll_info
         return pool_id
     end
@@ -802,10 +852,10 @@ do
         end
     end)
     util.create_tick_handler(function()
-        if util.is_session_started() then
+        -- if util.is_session_started() then
             local my_pos = ENTITY.GET_ENTITY_COORDS(players.user_ped())
             for _, coll_info in blip_pool do
-                local [blips, blip_sprite, blip_name, positions, min_id, max_id, has_fn, can_col_fn, explore_dist, clr, tgl, disabled] = coll_info
+                local [blips, blip_sprite, blip_name, positions, min_id, max_id, has_fn, can_col_fn, explore_dist, clr, scale, tgl, disabled] = coll_info
                 local ctr = 0
                 local pos_offs = 1 - min_id
                 for i=min_id, max_id do
@@ -832,6 +882,7 @@ do
                         end
                         HUD.SET_BLIP_SPRITE(blip, blip_sprite)
                         HUD.SET_BLIP_COLOUR(blip, clr or 2)
+                        HUD.SET_BLIP_SCALE(blip, scale)
                         HUD.SET_BLIP_NAME_FROM_TEXT_FILE(blip, blip_name)
                         HUD.SET_BLIP_AS_SHORT_RANGE(blip, true)
                         HUD.SHOW_HEIGHT_ON_BLIP(blip, true)
@@ -839,33 +890,32 @@ do
                 end
                 menu.set_help_text(tgl, "%i / %i":format(ctr, max_id - min_id + 1))
             end
-        else
-            for k, coll_info in blip_pool do
-                for _, blip in coll_info[1] do
-                    util.remove_blip(blip)
-                end
-            end
-        end
+        -- else
+        --     for k, coll_info in blip_pool do
+        --         for _, blip in coll_info[1] do
+        --             util.remove_blip(blip)
+        --         end
+        --     end
+        -- end
     end)
 end
-addNormalCollectible(671, "PIM_ACTIONFIG", "Action Figures", figures, 0, has_action_figure, nil, 70, 30)
-addNormalCollectible(769, "PIM_SIGNAL", "Signal Jammers", jammers, 0, has_jammer, nil, 70, 1)
-addNormalCollectible(680, "PIM_PLAYINGCAR", "Playing Cards", cards, 0, has_playing_card, nil, 70, 27)
-addNormalCollectible(790, "PIM_FILM_COL", "Movie Props", movie_prop, 0, has_movie_prop, nil, 70, 6)
-addNormalCollectible(781, "PIM_TRICKTR", "Trick Or Treat", lanterns, 0, has_lantern, can_lantern, 70, 64)
-addNormalCollectible(140, "PIM_ORGANITR", "LD Organics Product", ld_product, 0, has_ld_product, can_ld_product, 70, 2)
-addNormalCollectible(141, "PIM_SNOWMENTR", "Snowmen", snowmen, 0, has_snowman, can_snowmen, 70, 3)
+local sp_list = my_root:list("SP Collectibles")
+addNormalCollectible(sp_list, 525, "NUM_HIDDEN_PACKAGES_0", "Letter Scraps", letterscraps, 0, has_letterscrap, can_letterscrap, 70, 12, 0.75)
+addNormalCollectible(sp_list, 752, "NUM_HIDDEN_PACKAGES_1", "Letter Scraps", spaceshipparts, 0, has_spaceshippart, can_spaceshippart, 70, 30, 0.8)
+local mp_list = my_root:list("MP Collectibles")
+addNormalCollectible(mp_list, 671, "PIM_ACTIONFIG", "Action Figures", figures, 0, has_action_figure, is_mp, 70, 30)
+addNormalCollectible(mp_list, 769, "PIM_SIGNAL", "Signal Jammers", jammers, 0, has_jammer, is_mp, 140, 1)
+addNormalCollectible(mp_list, 680, "PIM_PLAYINGCAR", "Playing Cards", cards, 0, has_playing_card, is_mp, 70, 27)
+addNormalCollectible(mp_list, 790, "PIM_FILM_COL", "Movie Props", movie_prop, 0, has_movie_prop, is_mp, 70, 6)
+addNormalCollectible(mp_list, 781, "PIM_TRICKTR", "Trick Or Treat", lanterns, 0, has_lantern, can_lantern, 70, 64)
+addNormalCollectible(mp_list, 140, "PIM_ORGANITR", "LD Organics Product", ld_product, 0, has_ld_product, can_ld_product, 70, 2)
+addNormalCollectible(mp_list, 141, "PIM_SNOWMENTR", "Snowmen", snowmen, 0, has_snowman, can_snowmen, 70, 3)
 
 local bln_enable = true
-local slasher_btn = menu.toggle(my_root, util.get_label_text("SERIALKILLBLIP"), {}, "", function(st)
+local slasher_btn = mp_list:toggle(util.get_label_text("SERIALKILLBLIP"), {}, "", function(st)
     bln_enable = st
 end, true)
 local blaine_county_blip
-util.on_stop(function()
-    if blaine_county_blip then
-        util.remove_blip(blaine_county_blip)
-    end
-end)
 util.create_tick_handler(function()
     local blaine_county_progress = get_blaine_county_progress()
     slasher_btn.help_text = "%i / %i":format(blaine_county_progress, 6)
@@ -888,5 +938,47 @@ util.create_tick_handler(function()
     elseif blaine_county_blip then
         util.remove_blip(blaine_county_blip)
         blaine_county_blip = nil
+    end
+end)
+
+local ghosthunt_enable = true
+local ghosthunt_btn = mp_list:toggle("Ghost Hunt", {}, "", function(st)
+    ghosthunt_enable = st
+end, true)
+local ghosthunt_blip
+util.create_tick_handler(function()
+    local is_ghost_available = false
+    local ghostbit_ptr = memory.script_local("fm_content_ghosthunt", 1399+1)
+    local ghostpos
+    if ghostbit_ptr ~= 0 then
+        local ghostbit = memory.read_int(ghostbit_ptr)
+        is_ghost_available = (ghostbit & (1 << 14 | 1 << 15 | 1 << 16)) == 0
+        local ghostpos_ptr = memory.script_local("fm_content_ghosthunt", 228 + 85 + 1 + 1 + 0*12 + 4)
+        ghostpos = v3(ghostpos_ptr)
+    end
+    if ghosthunt_enable and is_ghost_available and util.is_session_started() then
+        if ghosthunt_blip == nil then
+            util.draw_debug_text("ghostblip created")
+            ghosthunt_blip = HUD.ADD_BLIP_FOR_COORD(0,0,0)
+            HUD.SET_BLIP_SPRITE(ghosthunt_blip, 484)
+            HUD.SET_BLIP_COLOUR(ghosthunt_blip, 52)
+            HUD.SET_BLIP_SCALE(ghosthunt_blip, 1.5)
+            -- HUD.SET_BLIP_NAME_FROM_TEXT_FILE(ghosthunt_blip,"SERIALKILLBLIP")
+            HUD.BEGIN_TEXT_COMMAND_SET_BLIP_NAME("STRING")
+            HUD.ADD_TEXT_COMPONENT_SUBSTRING_PLAYER_NAME("Ghost Hunt")
+            HUD.END_TEXT_COMMAND_SET_BLIP_NAME(ghosthunt_blip)
+        end
+        HUD.SET_BLIP_COORDS(ghosthunt_blip, ghostpos)
+    elseif ghosthunt_blip then
+        util.remove_blip(ghosthunt_blip)
+        ghosthunt_blip = nil
+    end
+end)
+util.on_stop(function()
+    if blaine_county_blip then
+        util.remove_blip(blaine_county_blip)
+    end
+    if ghosthunt_blip then
+        util.remove_blip(ghosthunt_blip)
     end
 end)

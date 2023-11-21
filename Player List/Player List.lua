@@ -66,8 +66,6 @@ enum StandLabels begin
     L_MOUSEMOVE = 2048209357,
     L_VIS = -582303346,
 end
-local registerLang = lang.register
-
 local lbls = {}
 for key, value in parseLangTxt("en") do
     lbls[key] = lang.register(value)
@@ -97,6 +95,13 @@ setmetatable(lbls, {
         return "!!! "..key.." !!!"
     end
 })
+
+local CLAN_SYMBOL_ROCKSTAR<const> = "@"
+local CLAN_SYMBOL_CLOSED_CREW<const> = "$"
+local CLAN_SYMBOL_CLOSED_CREW_OUTLINE<const> = "#"
+local CLAN_SYMBOL_OPEN_CREW<const> = '"'
+local CLAN_SYMBOL_OPEN_CREW_OUTLINE<const> = "!"
+
 -- 1.58 globals
 -- local fmHud = 1644209
 -- local fmPlayerInfo = 1893548
@@ -386,7 +391,8 @@ local function getClanDesc(pid)
             createdTime = memory.read_int(clan_desc+0xF8),
             clanColorRed = memory.read_int(clan_desc+0x100),
             clanColorGreen = memory.read_int(clan_desc+0x108),
-            clanColorBlue = memory.read_int(clan_desc+0x110)
+            clanColorBlue = memory.read_int(clan_desc+0x110),
+            isRockstarClan = NETWORK.NETWORK_CLAN_IS_ROCKSTAR_CLAN(clan_desc, 35)
         }
     end
 end
@@ -407,18 +413,18 @@ local function truncate_text_to_size(txt, size, width, trail)
     return "", true
 end
 local function sort_players(ply_list)
-    local value_list = {}
+    local weights = {}
     for ply_list as pid do
         local boss = get_boss(pid)
         if boss == pid then
-            value_list[pid] = boss * 33
+            weights[pid] = boss * 33
         else
-            value_list[pid] = (boss == -1 ? 32 : boss) * 33 + (pid + 1)
+            weights[pid] = (boss == -1 ? 32 : boss) * 33 + (pid + 1)
         end
     end
     
     table.sort(ply_list, function(p1,p2)
-        return value_list[p1] < value_list[p2]
+        return weights[p1] < weights[p2]
     end)
     return ply_list
 end
@@ -706,6 +712,10 @@ util.create_tick_handler(function()
         end
         directx.draw_text(left_offset + posX,penY + icon_h / 2,name,ALIGN_CENTRE_LEFT,name_scale,1,1,1,1)
         if showCrew and clanDesc then
+            local clanTag = clanDesc.clanTag
+            if clanDesc.isRockstarClan then
+                clanTag = "@"..clanTag
+            end
             local clan_r, clan_g, clan_b = clanDesc.clanColorRed, clanDesc.clanColorGreen, clanDesc.clanColorBlue
             local txt_col = 0
             if tagUseColor then
@@ -720,8 +730,15 @@ util.create_tick_handler(function()
                 clan_g = 1
                 clan_b = 1
             end
-            directx.draw_texture(clanDesc.isOpenClan and crew_2_tex or crew_1_tex, icon_w, icon_h / 2, 0.5, 0.5, left_offset + posX + text_w + crewOffset * icon_w + icon_w,penY + icon_h / 2, 0, clan_r, clan_g, clan_b,1)
-            directx.draw_text(left_offset + posX + text_w + crewOffset * icon_w + icon_w - icon_w * 0.05,penY + icon_h / 2 + icon_h * 0.05,clanDesc.clanTag,ALIGN_CENTRE,icon_h * 25,txt_col,txt_col,txt_col,1, false, rockstar_font)
+            local outline_char, bg_char
+            if clanDesc.isOpenClan then
+                outline_char, bg_char = CLAN_SYMBOL_OPEN_CREW_OUTLINE, CLAN_SYMBOL_OPEN_CREW
+            else
+                outline_char, bg_char = CLAN_SYMBOL_CLOSED_CREW_OUTLINE, CLAN_SYMBOL_CLOSED_CREW
+            end
+            directx.draw_text(left_offset + posX + text_w + crewOffset * icon_w + icon_w,penY + icon_h / 2 + icon_h * 0.05,bg_char,ALIGN_CENTRE,icon_h * 23,clan_r,clan_g,clan_b,1, false, rockstar_font)
+            directx.draw_text(left_offset + posX + text_w + crewOffset * icon_w + icon_w,penY + icon_h / 2 + icon_h * 0.05,outline_char,ALIGN_CENTRE,icon_h * 23,0,0,0,1, false, rockstar_font)
+            directx.draw_text(left_offset + posX + text_w + crewOffset * icon_w + icon_w - icon_w * 0.05,penY + icon_h / 2 + icon_h * 0.05,clanTag,ALIGN_CENTRE,icon_h * 25,txt_col,txt_col,txt_col,1, false, rockstar_font)
         end
         penY = nextPenY
     end

@@ -84,14 +84,19 @@ end
 local function toast_label(str, toast_flag)
     toast(lang.get_localised(str), toast_flag)
 end
+local have_net_access = async_http.have_access()
 local function addInternetWarning(s)
-    if async_http.have_access() then return s end
-    s = lang.get_localised(s)
-    return $"{s}\n\n{lang.get_localised(lbls.ERRNOINTERNET)}"
+    if have_net_access then return s end
+    return $"{lang.get_localised(s)}\n\n{lang.get_localised(lbls.ERRNOINTERNET)}"
 end
 
+local warned = false
 setmetatable(lbls, {
     function __index(key)
+        if not warned then
+            toast("A label was detected missing from the English translation, please ensure the script is installed correctly by redownloading.", TOAST_ALL)
+            warned = true
+        end
         return "!!! "..key.." !!!"
     end
 })
@@ -119,8 +124,12 @@ local CLAN_SYMBOL_OPEN_CREW_OUTLINE<const> = "!"
 -- local fmPedHead<const> = 1666668
 
 -- 1.66 globals
-local fmHud <const> = 1654054
-local fmPedHead<const> = 1666485
+-- local fmHud <const> = 1654054
+-- local fmPedHead<const> = 1666485
+
+-- 1.68 globals
+local fmHud <const> = 1668317
+local fmPedHead<const> = 1680805
 
 local function getPedHeadshotIds()
     local tbl = {}
@@ -269,15 +278,25 @@ local aPtr = bPtr+4
         
         --region Accessories
             local accessoryList = menu.list(appearanceList, lbls.ACCS)
-                
-            local show_voice = 2
-            accessoryList:list_select(lbls.SHOWVOICE, {"playerlistshowvoice"}, "", {{L_OFF, {"off"}}, {lbls.SHOWVOICE_2, {"talking"}}, {L_ON, {"on"}}}, show_voice, function(val)
+            
+            enum SHOW_VOICE_OPTION begin
+                VOICE_ICON_OFF,
+                VOICE_ICON_TALKING,
+                VOICE_ICON_ON
+            end
+            local show_voice = VOICE_ICON_TALKING
+            accessoryList:list_select(lbls.SHOWVOICE, {"playerlistshowvoice"}, "", {{VOICE_ICON_OFF, L_OFF, {"off"}}, {VOICE_ICON_TALKING, lbls.SHOWVOICE_2, {"talking"}}, {VOICE_ICON_ON, L_ON, {"on"}}}, show_voice, function(val)
                 show_voice = val
             end)
             local show_head = false
             accessoryList:toggle(lbls.SHOWHEAD, {"playerlistshowhead"}, lbls.SHOWHEAD_H, function(st) show_head = st end, show_head)
+            enum SHOW_RP_OPTION begin
+                RP_ICON_OFF,
+                RP_ICON_TALKING,
+                RP_ICON_ON
+            end
             local show_rp = 2
-            accessoryList:list_select(lbls.SHOWRP, {"playerlistshowrp"}, lbls.SHOWRP_H, {{L_OFF, {"off"}}, {lbls.SHOWRP_2, {"talking"}, lbls.SHOWRP_2_H}, {L_ON, {"on"}}}, show_rp, function(val)
+            accessoryList:list_select(lbls.SHOWRP, {"playerlistshowrp"}, lbls.SHOWRP_H, {{RP_ICON_OFF, L_OFF, {"off"}}, {RP_ICON_TALKING, lbls.SHOWRP_2, {"talking"}, lbls.SHOWRP_2_H}, {RP_ICON_ON, L_ON, {"on"}}}, show_rp, function(val)
                 show_rp = val
             end)
             local show_org = true
@@ -366,6 +385,7 @@ local aPtr = bPtr+4
 menu.apply_command_states()
 --endregion
 local function getGamerHandle(pid)
+    -- when the game does not consider it to be MP, the game will assume local player. this is to avoid that behavior.
     if pid ~= players.user() and not NETWORK.NETWORK_IS_SESSION_STARTED() then return end
     local gamerHandle = memory.alloc(13)
     NETWORK.NETWORK_HANDLE_FROM_PLAYER(pid, gamerHandle, 13)
@@ -373,12 +393,10 @@ local function getGamerHandle(pid)
 end
 local clan_desc = memory.alloc(35*8)
 local function getClanDesc(pid)
-    -- when the game does not consider it to be MP, the game will assume local player. this is to avoid that behavior.
     local gamerHandle = getGamerHandle(pid)
     if not gamerHandle then return end
-    local hasDesc = NETWORK.NETWORK_CLAN_PLAYER_GET_DESC(clan_desc, 35, gamerHandle)
-    -- local clan_desc = memory.script_global(1575090+1+pid*35)
-    if hasDesc then
+    -- local clan_desc = memory.script_global(1575095+1+pid*35)
+    if NETWORK.NETWORK_CLAN_PLAYER_GET_DESC(clan_desc, 35, gamerHandle) then
         return {
             id = memory.read_int(clan_desc),
             clanName = memory.read_string(clan_desc+0x8),
@@ -391,8 +409,7 @@ local function getClanDesc(pid)
             createdTime = memory.read_int(clan_desc+0xF8),
             clanColorRed = memory.read_int(clan_desc+0x100),
             clanColorGreen = memory.read_int(clan_desc+0x108),
-            clanColorBlue = memory.read_int(clan_desc+0x110),
-            isRockstarClan = NETWORK.NETWORK_CLAN_IS_ROCKSTAR_CLAN(clan_desc, 35)
+            clanColorBlue = memory.read_int(clan_desc+0x110)
         }
     end
 end
@@ -437,6 +454,15 @@ local function get_session_label()
         return "HUD_LBD_FMP"
     end
     return "PM_PAUSE_HDR"
+end
+local function get_session_name()
+    if NETWORK.NETWORK_IS_ACTIVITY_SESSION() and #(activity_label_name := memory.read_string(memory.script_global(4718592 + 126151))) > 0 then
+        local difficulty = memory.read_int(memory.script_global(4718592+3251))
+        local difficulty_label = "LBD_DIF_"..difficulty
+        return $"{activity_label_name} ({util.get_label_text(difficulty_label)})"
+    end
+    return util.get_label_text(get_session_label())
+
 end
 -- local function get_player_loadstate(pid)
 --     return memory.read_int(memory.script_global(2657704+1+pid*463))
@@ -495,7 +521,7 @@ util.create_tick_handler(function()
         end
         directx.blurrect_draw(blurrect[2], posX+x_off,penY+icon_h,list_w-x_off,menu_height - icon_h, blur)
     end
-    local label = util.get_label_text(get_session_label()):gsub("~1~", #ply_list)
+    local label = get_session_name():gsub("~1~", #ply_list)
     directx.draw_rect(posX,penY,list_w,icon_h,{r=0,g=0,b=0,a=0.6})
     directx.draw_text(posX,penY + icon_h / 2,label,ALIGN_CENTRE_LEFT,text_scale*icon_h,1,1,1,1)
     penY += icon_h
@@ -609,8 +635,9 @@ util.create_tick_handler(function()
         local voice_anim_state = 0
         local accY = penY + icon_h / 2
         local is_talking = is_me ? NETWORK.NETWORK_IS_PUSH_TO_TALK_ACTIVE() : NETWORK.NETWORK_IS_PLAYER_TALKING(pid)
+        local is_talk_icon_visible = is_talking or show_voice == VOICE_ICON_ON
         local rank = players.get_rank(pid)
-        if show_rp ~= 1 and not (show_rp == 2 and (is_talking or show_voice == 3)) then
+        if show_rp ~= RP_ICON_OFF and not (show_rp == RP_ICON_TALKING and is_talk_icon_visible) then
             local rw, rh = directx.get_text_size(rank, 60, gamer_font)
             rw = math.max(rw, 1)
             directx.draw_texture(rp_tex, icon_w / 2, icon_h, 0.5, 0.5, right_pen, accY, 0, fm_r,fm_g,fm_b,fm_a)
@@ -626,7 +653,7 @@ util.create_tick_handler(function()
         --     right_pen = right_pen - icon_w
         --     acc_w += icon_w
         -- end
-        if is_talking or show_voice == 3 then
+        if is_talk_icon_visible then
             if is_talking then
                 voice_anim_state = voice_st
             end
@@ -713,7 +740,7 @@ util.create_tick_handler(function()
         directx.draw_text(left_offset + posX,penY + icon_h / 2,name,ALIGN_CENTRE_LEFT,name_scale,1,1,1,1)
         if showCrew and clanDesc then
             local clanTag = clanDesc.clanTag
-            if clanDesc.isRockstarClan then
+            if clanDesc.clanName:match("Rockstar") then
                 clanTag = "@"..clanTag
             end
             local clan_r, clan_g, clan_b = clanDesc.clanColorRed, clanDesc.clanColorGreen, clanDesc.clanColorBlue

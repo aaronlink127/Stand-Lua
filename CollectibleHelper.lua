@@ -13,8 +13,10 @@ CollectibleHelper by aaronlink127 v1.08 (for GTA Online v1.67)
       - Jack O' Lanterns
       - LD Organics Product
       - Snowmen
+      - Ghosts Exposed
+      - Peyote Plants
 ]]--
-util.require_natives("2944b")
+util.require_natives("3095a")
 
 local function spoof_main(fn, ...)
     local ret
@@ -35,6 +37,22 @@ util.create_thread(function()
     tunable_collectables_ld_organics = memory.tunable_offset("collectables_ld_organics")
     tunable_collectables_trick_or_treat = memory.tunable_offset("collectables_trick_or_treat")
     tunable_collectables_snowmen = memory.tunable_offset("collectables_snowmen")
+    tunable_vc_peyote_enable = memory.tunable_offset("vc_peyote_enable")
+    tunable_vc_peyote_disable_1 = memory.tunable_offset("vc_peyote_disable_1")
+    tunable_vc_peyote_disable_2 = memory.tunable_offset("vc_peyote_disable_2")
+    tunable_vc_peyote_disable_3 = memory.tunable_offset("vc_peyote_disable_3")
+    tunable_vc_peyote_disable_4 = memory.tunable_offset("vc_peyote_disable_4")
+    tunable_vc_peyote_disable_5 = memory.tunable_offset("vc_peyote_disable_5")
+    tunable_vc_peyote_disable_6 = memory.tunable_offset("vc_peyote_disable_6")
+    tunable_vc_peyote_disable_7 = memory.tunable_offset("vc_peyote_disable_7")
+    tunable_vc_peyote_disable_8 = memory.tunable_offset("vc_peyote_disable_8")
+    tunable_vc_peyote_disable_9 = memory.tunable_offset("vc_peyote_disable_9")
+    tunable_vc_peyote_disable_10 = memory.tunable_offset("vc_peyote_disable_10")
+    tunable_vc_peyote_disable_11 = memory.tunable_offset("vc_peyote_disable_11")
+    tunable_vc_peyote_disable_12 = memory.tunable_offset("vc_peyote_disable_12")
+    tunable_vc_peyote_disable_13 = memory.tunable_offset("vc_peyote_disable_13")
+    tunable_vc_peyote_disable_14 = memory.tunable_offset("vc_peyote_disable_14")
+    tunable_vc_peyote_disable_15 = memory.tunable_offset("vc_peyote_disable_15")
 end)
 local tunableBase<const> = 262145
 local function readTunableBool(idx)
@@ -785,6 +803,9 @@ end
 local function is_sp()
     return not util.is_session_started()
 end
+local function has_peyote(peyote_id)
+    return false
+end
 local function has_playing_card(card_id)
     return STATS.GET_PACKED_STAT_BOOL_CODE(26911 + card_id, -1)
 end
@@ -825,6 +846,11 @@ end
 local function has_ld_product(prod_id)
     return STATS.GET_PACKED_STAT_BOOL_CODE(34262 + prod_id, -1)
 end
+local function can_peyote()
+    if tunable_vc_peyote_enable and is_mp() then
+        return readTunableBool(tunable_vc_peyote_enable)
+    end
+end
 local function can_snowmen()
     if tunable_collectables_snowmen and is_mp() then
         return readTunableBool(tunable_collectables_snowmen)
@@ -832,6 +858,122 @@ local function can_snowmen()
 end
 local function has_snowman(snowman_id)
     return STATS.GET_PACKED_STAT_BOOL_CODE(36630 + snowman_id, -1)
+end
+local function is_peyote_available(idx)
+    switch (idx) do
+        case 0:
+		case 1:
+		case 2:
+		case 3:
+		case 4:
+			return not readTunableBool(tunables_vc_peyote_disable_1)
+		
+		case 5:
+		case 6:
+		case 7:
+		case 8:
+		case 9:
+			return not readTunableBool(tunables_vc_peyote_disable_2)
+		
+		case 10:
+		case 11:
+		case 12:
+		case 13:
+		case 14:
+			return not readTunableBool(tunables_vc_peyote_disable_3)
+		
+		case 15:
+		case 16:
+		case 17:
+		case 18:
+		case 19:
+			return not readTunableBool(tunables_vc_peyote_disable_4)
+		
+		case 20:
+		case 21:
+		case 22:
+		case 23:
+		case 24:
+			return not readTunableBool(tunables_vc_peyote_disable_5)
+		
+		case 25:
+		case 26:
+		case 27:
+		case 28:
+		case 29:
+			return not readTunableBool(tunables_vc_peyote_disable_6)
+
+		case 30:
+		case 31:
+		case 32:
+		case 33:
+		case 34:
+			return not readTunableBool(tunables_vc_peyote_disable_7)
+		
+		case 35:
+		case 36:
+		case 37:
+		case 38:
+		case 39:
+			return not readTunableBool(tunables_vc_peyote_disable_8)
+		
+		case 40:
+		case 41:
+		case 42:
+		case 43:
+		case 44:
+			return not readTunableBool(tunables_vc_peyote_disable_9)
+
+		case 45:
+		case 46:
+		case 47:
+		case 48:
+		case 49:
+			return not readTunableBool(tunables_vc_peyote_disable_10)
+		
+		case 50:
+		case 51:
+		case 52:
+		case 53:
+		case 54:
+			return not readTunableBool(tunables_vc_peyote_disable_11)
+		
+		case 55:
+		case 56:
+		case 57:
+		case 58:
+		case 59:
+			return not readTunableBool(tunables_vc_peyote_disable_12)
+			break;
+		
+		case 60:
+		case 61:
+		case 62:
+		case 63:
+		case 64:
+			return not readTunableBool(tunables_vc_peyote_disable_13)
+			break;
+		
+		case 65:
+		case 66:
+		case 67:
+		case 68:
+		case 69:
+			return not readTunableBool(tunables_vc_peyote_disable_14)
+		
+		case 70:
+		case 71:
+		case 72:
+		case 73:
+		case 76:
+			return not readTunableBool(tunables_vc_peyote_disable_15)
+		
+		case 74:
+			return not readTunableBool(tunables_vc_peyote_disable_15) and not readTunableBool(tunables_vc_peyote_disable_sasquatch_loc)
+		
+		case 75:
+			return not readTunableBool(tunables_vc_peyote_disable_15) and not readTunableBool(tunables_vc_peyote_disable_chop_loc)
+    end
 end
 local function get_blaine_county_progress()
     local stat_id = 28149
@@ -849,12 +991,12 @@ end
 local addNormalCollectible
 do
     local blip_pool = {}
-    function addNormalCollectible(parent, blip_sprite, blip_name, name_for_config, positions, min_id, has_fn, can_col_fn, explore_dist, clr, scale = 1)
+    function addNormalCollectible(parent, blip_sprite, blip_name, name_for_config, positions, min_id, has_fn, can_col_fn, coll_exist_fn, explore_dist, clr, scale = 1)
         local pool_id = #blip_pool+1
-        local coll_info = {{},  blip_sprite, blip_name, positions, min_id, #positions - 1 + min_id, has_fn, can_col_fn, explore_dist^2, clr, scale, nil, false}
-        local mnu = menu.toggle(parent, util.get_label_text(blip_name), {}, "", function(st) coll_info[13] = not st end, true)
+        local coll_info = {{},  blip_sprite, blip_name, positions, min_id, #positions - 1 + min_id, has_fn, can_col_fn, coll_exist_fn, explore_dist^2, clr, scale, nil, false}
+        local mnu = menu.toggle(parent, util.get_label_text(blip_name), {}, "", function(st) coll_info[14] = not st end, true)
         mnu.name_for_config = name_for_config
-        coll_info[12] = mnu
+        coll_info[13] = mnu
         blip_pool[pool_id] = coll_info
         return pool_id
     end
@@ -869,12 +1011,17 @@ do
         -- if util.is_session_started() then
             local my_pos = ENTITY.GET_ENTITY_COORDS(players.user_ped())
             for _, coll_info in blip_pool do
-                local [blips, blip_sprite, blip_name, positions, min_id, max_id, has_fn, can_col_fn, explore_dist, clr, scale, tgl, disabled] = coll_info
+                local [blips, blip_sprite, blip_name, positions, min_id, max_id, has_fn, can_col_fn, coll_exist_fn, explore_dist, clr, scale, tgl, disabled] = coll_info
                 local ctr = 0
+                local max_ctr = 0
                 local pos_offs = 1 - min_id
                 for i=min_id, max_id do
                     local idx = i+pos_offs
                     local pos = positions[idx]
+                    if coll_exist_fn and not coll_exist_fn(i) then
+                        continue
+                    end
+                    max_ctr += 1
                     local has_coll = has_fn(i)
                     if has_coll then
                         ctr += 1
@@ -902,7 +1049,7 @@ do
                         HUD.SHOW_HEIGHT_ON_BLIP(blip, true)
                     end
                 end
-                menu.set_help_text(tgl, "%i / %i":format(ctr, max_id - min_id + 1))
+                menu.set_help_text(tgl, "%i / %i":format(ctr, max_ctr))
             end
         -- else
         --     for k, coll_info in blip_pool do
@@ -916,16 +1063,17 @@ end
 local DIST_NOR = 120
 local DIST_HIGH = 180
 local sp_list = my_root:list("SP Collectibles")
-addNormalCollectible(sp_list, 525, "NUM_HIDDEN_PACKAGES_0", "Letter Scraps", letterscraps, 0, has_letterscrap, can_letterscrap, 140, 12, 0.75)
-addNormalCollectible(sp_list, 752, "NUM_HIDDEN_PACKAGES_1", "Spaceship Parts", spaceshipparts, 0, has_spaceshippart, can_spaceshippart, 140, 30, 0.8)
+addNormalCollectible(sp_list, 525, "NUM_HIDDEN_PACKAGES_0", "Letter Scraps", letterscraps, 0, has_letterscrap, can_letterscrap, nil, 140, 12, 0.75)
+addNormalCollectible(sp_list, 752, "NUM_HIDDEN_PACKAGES_1", "Spaceship Parts", spaceshipparts, 0, has_spaceshippart, can_spaceshippart, nil, 140, 30, 0.8)
 local mp_list = my_root:list("MP Collectibles")
-addNormalCollectible(mp_list, 671, "PIM_ACTIONFIG", "Action Figures", figures, 0, has_action_figure, is_mp, 140, 30)
-addNormalCollectible(mp_list, 769, "PIM_SIGNAL", "Signal Jammers", jammers, 0, has_jammer, is_mp, 190, 1)
-addNormalCollectible(mp_list, 680, "PIM_PLAYINGCAR", "Playing Cards", cards, 0, has_playing_card, is_mp, 140, 27)
-addNormalCollectible(mp_list, 790, "PIM_FILM_COL", "Movie Props", movie_prop, 0, has_movie_prop, is_mp, 140, 6)
-addNormalCollectible(mp_list, 781, "PIM_TRICKTR", "Trick Or Treat", lanterns, 0, has_lantern, can_lantern, 140, 64)
-addNormalCollectible(mp_list, 140, "PIM_ORGANITR", "LD Organics Product", ld_product, 0, has_ld_product, can_ld_product, 140, 2)
-addNormalCollectible(mp_list, 141, "PIM_SNOWMENTR", "Snowmen", snowmen, 0, has_snowman, can_snowmen, 140, 3)
+addNormalCollectible(mp_list, 671, "PIM_ACTIONFIG", "Action Figures", figures, 0, has_action_figure, is_mp, nil, 140, 30)
+addNormalCollectible(mp_list, 769, "PIM_SIGNAL", "Signal Jammers", jammers, 0, has_jammer, is_mp, nil, 190, 1)
+addNormalCollectible(mp_list, 680, "PIM_PLAYINGCAR", "Playing Cards", cards, 0, has_playing_card, is_mp, nil, 140, 27)
+addNormalCollectible(mp_list, 790, "PIM_FILM_COL", "Movie Props", movie_prop, 0, has_movie_prop, is_mp, nil, 140, 6)
+addNormalCollectible(mp_list, 781, "PIM_TRICKTR", "Trick Or Treat", lanterns, 0, has_lantern, can_lantern, nil, 140, 64)
+addNormalCollectible(mp_list, 140, "PIM_ORGANITR", "LD Organics Product", ld_product, 0, has_ld_product, can_ld_product, nil, 140, 2)
+addNormalCollectible(mp_list, 141, "PIM_SNOWMENTR", "Snowmen", snowmen, 0, has_snowman, can_snowmen, nil, 140, 3)
+addNormalCollectible(mp_list, 141, "NUM_HIDDEN_PACKAGES_5", "Peyote Plants", peyotes, 0, has_peyote, can_peyote, nil, 140, 33)
 
 local bln_enable = true
 local slasher_btn = mp_list:toggle(util.get_label_text("SERIALKILLBLIP"), {}, "", function(st)

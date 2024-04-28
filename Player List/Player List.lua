@@ -8,7 +8,7 @@ local function toast(str, toast_flag)
     util.toast($"[{SCRIPT_NAME}] {str}", toast_flag ?? TOAST_DEFAULT)
 end
 local curLang = lang.get_current()
-local asset_dir = filesystem.resources_dir().."playerlist/"
+local asset_dir = filesystem.resources_dir().."al-playerlist/"
 if not io.isdir(asset_dir) then
     toast("Assets not found, exiting!", TOAST_DEFAULT | TOAST_LOGGER)
     return
@@ -606,9 +606,9 @@ util.create_tick_handler(function()
         else
             bg_a = 0.4
         end
-        bg_r *= lightness * bg_a
-        bg_g *= lightness * bg_a
-        bg_b *= lightness * bg_a
+        -- bg_r *= lightness * bg_a
+        -- bg_g *= lightness * bg_a
+        -- bg_b *= lightness * bg_a
         directx.draw_rect(left_offset + posX,penY,list_w - left_offset,icon_h,bg_r,bg_g,bg_b,bg_a)
         
         local spectateTarget = players.get_spectate_target(pid)
@@ -625,7 +625,7 @@ util.create_tick_handler(function()
                 directx.draw_rect(posX + list_w + mainOffs - lineW, penY + icon_h / 2, lineX + lineW + triW, icon_h * (4/32), 1, 0, 1, 1)
                 directx.draw_rect(posX + list_w + mainOffs - lineW + triW, posY + idxInList * icon_h + icon_h / 2, lineX + lineW, icon_h * (4/32), 1, 0, 1, 1)
                 directx.draw_rect(posX + list_w + mainOffs + triW - lineW + lineX, penY + icon_h / 2, lineW, icon_h * (idxInList - k), 1, 0, 1, 1)
-                directx.draw_triangle(triX + mainOffs, triY, triX + triW, triY - triH, triX + triW, triY + triH, 255,0,255,255)
+                directx.draw_triangle(triX + mainOffs, triY, triX + triW, triY - triH, triX + triW, triY + triH, 1,0,1,1)
                 spectate_stack += 1
             end
         end

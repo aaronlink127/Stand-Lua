@@ -2,7 +2,7 @@
 Player List by aaronlink127 v0.73 (for GTA Online v1.67)
     Provides a customizable Player List akin to the one built into the game.
 ]]
-util.require_natives("2944b")
+util.require_natives("3095a", "g")
 
 local function toast(str, toast_flag)
     util.toast($"[{SCRIPT_NAME}] {str}", toast_flag ?? TOAST_DEFAULT)
@@ -133,7 +133,7 @@ local fmPedHead<const> = 1680805
 
 local function getPedHeadshotIds()
     local tbl = {}
-    if SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(-931834499) == 0 then return tbl end
+    if GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(-931834499) == 0 then return tbl end
     for i=0, 31 do
         local pid = memory.read_int(memory.script_global(fmPedHead+1+i*5+1))
         if pid == -1 then continue end
@@ -167,7 +167,7 @@ local aPtr = bPtr+4
         return r/255, g/255, b/255, a/255
     end
     local function GET_HUD_COLOUR(id)
-        HUD.GET_HUD_COLOUR(id, rPtr, gPtr, bPtr, aPtr)
+        GET_HUD_COLOUR(id, rPtr, gPtr, bPtr, aPtr)
         return memory.read_int(rPtr), memory.read_int(gPtr), memory.read_int(bPtr), memory.read_int(aPtr)
     end
     local function GET_HUD_COLOUR_FLOAT(id)
@@ -349,10 +349,10 @@ local aPtr = bPtr+4
                 end
                 if not menu.is_open() then return end
                 directx.draw_rect(cur_x, cur_y, 16/1920, 16/1080, 1,1,1,1)
-                PAD.SET_INPUT_EXCLUSIVE(2,INPUT_CURSOR_ACCEPT)
-                PAD.SET_INPUT_EXCLUSIVE(2,INPUT_CURSOR_X)
-                PAD.SET_INPUT_EXCLUSIVE(2,INPUT_CURSOR_Y)
-                if PAD.IS_CONTROL_JUST_PRESSED(2, INPUT_CURSOR_ACCEPT) then
+                SET_INPUT_EXCLUSIVE(2,INPUT_CURSOR_ACCEPT)
+                SET_INPUT_EXCLUSIVE(2,INPUT_CURSOR_X)
+                SET_INPUT_EXCLUSIVE(2,INPUT_CURSOR_Y)
+                if IS_CONTROL_JUST_PRESSED(2, INPUT_CURSOR_ACCEPT) then
                     util.create_thread(function()
                         local start_x, start_y = cur_x - posX, cur_y - posY
                         repeat
@@ -360,7 +360,7 @@ local aPtr = bPtr+4
                             menu.trigger_command(posY_cmd, math.floor((cur_y - start_y)*1080))
                             -- util.draw_debug_text(cur_x)
                             util.yield()
-                        until not PAD.IS_CONTROL_PRESSED(2, INPUT_CURSOR_ACCEPT)
+                        until not IS_CONTROL_PRESSED(2, INPUT_CURSOR_ACCEPT)
                     end)
                 end
             end, function()
@@ -386,9 +386,9 @@ menu.apply_command_states()
 --endregion
 local function getGamerHandle(pid)
     -- when the game does not consider it to be MP, the game will assume local player. this is to avoid that behavior.
-    if pid ~= players.user() and not NETWORK.NETWORK_IS_SESSION_STARTED() then return end
+    if pid ~= players.user() and not NETWORK_IS_SESSION_STARTED() then return end
     local gamerHandle = memory.alloc(13)
-    NETWORK.NETWORK_HANDLE_FROM_PLAYER(pid, gamerHandle, 13)
+    NETWORK_HANDLE_FROM_PLAYER(pid, gamerHandle, 13)
     return gamerHandle
 end
 local clan_desc = memory.alloc(35*8)
@@ -396,7 +396,7 @@ local function getClanDesc(pid)
     local gamerHandle = getGamerHandle(pid)
     if not gamerHandle then return end
     -- local clan_desc = memory.script_global(1575095+1+pid*35)
-    if NETWORK.NETWORK_CLAN_PLAYER_GET_DESC(clan_desc, 35, gamerHandle) then
+    if NETWORK_CLAN_PLAYER_GET_DESC(clan_desc, 35, gamerHandle) then
         return {
             id = memory.read_int(clan_desc),
             clanName = memory.read_string(clan_desc+0x8),
@@ -446,22 +446,22 @@ local function sort_players(ply_list)
     return ply_list
 end
 local function get_session_label()
-    if NETWORK.NETWORK_IS_SESSION_STARTED() then
-        if NETWORK.NETWORK_SESSION_IS_CLOSED_FRIENDS() then return "HUD_LBD_FMF" end
-        if NETWORK.NETWORK_SESSION_IS_CLOSED_CREW() then return "HUD_LBD_FMC" end
-        if NETWORK.NETWORK_SESSION_IS_SOLO() then return "HUD_LBD_FMS" end
-        if NETWORK.NETWORK_SESSION_IS_PRIVATE() then return "HUD_LBD_FMI" end
+    if NETWORK_IS_SESSION_STARTED() then
+        if NETWORK_SESSION_IS_CLOSED_FRIENDS() then return "HUD_LBD_FMF" end
+        if NETWORK_SESSION_IS_CLOSED_CREW() then return "HUD_LBD_FMC" end
+        if NETWORK_SESSION_IS_SOLO() then return "HUD_LBD_FMS" end
+        if NETWORK_SESSION_IS_PRIVATE() then return "HUD_LBD_FMI" end
         return "HUD_LBD_FMP"
     end
     return "PM_PAUSE_HDR"
 end
 local function get_session_name()
-    if NETWORK.NETWORK_IS_ACTIVITY_SESSION() and #(activity_label_name := memory.read_string(memory.script_global(4718592 + 126151))) > 0 then
+    if NETWORK_IS_ACTIVITY_SESSION() and #(activity_label_name := memory.read_string(memory.script_global(4718592 + 126151))) > 0 then
         local difficulty = memory.read_int(memory.script_global(4718592+3251))
         local difficulty_label = "LBD_DIF_"..difficulty
-        return $"{activity_label_name} ({util.get_label_text(difficulty_label)})"
+        return $"{activity_label_name} ({GET_FILENAME_FOR_AUDIO_CONVERSATION(difficulty_label)})"
     end
-    return util.get_label_text(get_session_label())
+    return GET_FILENAME_FOR_AUDIO_CONVERSATION(get_session_label())
 
 end
 -- local function get_player_loadstate(pid)
@@ -494,7 +494,7 @@ util.create_tick_handler(function()
     local cursor_sel
     local is_mouse_support = menu.is_open() and menu.get_value(mouse_support)
     if is_mouse_move or is_mouse_support then
-        cur_x, cur_y = window_to_screen(PAD.GET_CONTROL_NORMAL(2, 239), PAD.GET_CONTROL_NORMAL(2, 240))
+        cur_x, cur_y = window_to_screen(GET_CONTROL_NORMAL(2, 239), GET_CONTROL_NORMAL(2, 240))
         -- util.draw_debug_text(cur_x)
         -- util.draw_debug_text(cur_y)
         cursor_sel = is_mouse_support and cur_x > posX and cur_x < posX + list_w
@@ -534,20 +534,20 @@ util.create_tick_handler(function()
     local total_h = icon_h * #ply_list
     local aspect, pedHeadW, pedHeadH
     if show_head then
-        aspect = GRAPHICS.GET_ASPECT_RATIO(true)
+        aspect = GET_ASPECT_RATIO(true)
         local pedHeadBgX, pedHeadBgY = directx.pos_hud_to_client(posX + icon_w/2, penY + total_h/2)
         local pedHeadBgW, pedHeadBgH = directx.size_hud_to_client(icon_w, total_h)
         pedHeadW, pedHeadH = directx.size_hud_to_client(icon_w, icon_h)
         playerHeads = getPedHeadshotIds()
-        HUD.SET_TEXT_RENDER_ID(1)
-        HUD.SET_WIDESCREEN_FORMAT(0)
-        GRAPHICS.SET_SCRIPT_GFX_DRAW_ORDER(8)
-        GRAPHICS.SET_SCRIPT_GFX_DRAW_BEHIND_PAUSEMENU(true)
-        GRAPHICS.DRAW_RECT(pedHeadBgX, pedHeadBgY, pedHeadBgW, pedHeadBgH, 0, 0, 0, 255, false)
+        SET_TEXT_RENDER_ID(1)
+        SET_WIDESCREEN_FORMAT(0)
+        SET_SCRIPT_GFX_DRAW_ORDER(8)
+        SET_SCRIPT_GFX_DRAW_BEHIND_PAUSEMENU(true)
+        DRAW_RECT(pedHeadBgX, pedHeadBgY, pedHeadBgW, pedHeadBgH, 0, 0, 0, 255, false)
     end
     local spectate_stack = 0
     for k,pid in ply_list do
-        local ply_ped = PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(pid)
+        local ply_ped = GET_PLAYER_PED_SCRIPT_INDEX(pid)
         local is_me = usr == pid
         local stats_ready = players.are_stats_ready(pid) or is_me
         local nextPenY = penY + icon_h
@@ -556,7 +556,7 @@ util.create_tick_handler(function()
             is_cursor_here = true
             cursor_sel = false
         end
-        if is_cursor_here and PAD.IS_DISABLED_CONTROL_JUST_PRESSED(2, 237) then
+        if is_cursor_here and IS_DISABLED_CONTROL_JUST_PRESSED(2, 237) then
             menu.trigger_command(menu.player_root(pid))
         end
         even = not even
@@ -578,23 +578,23 @@ util.create_tick_handler(function()
             bg_r, bg_g, bg_b, bg_a = fm_r,fm_g,fm_b,fm_a
         end
 
-        local is_participant = NETWORK.NETWORK_IS_PLAYER_A_PARTICIPANT_ON_SCRIPT(pid, "freemode", -1)
+        local is_participant = NETWORK_IS_PLAYER_A_PARTICIPANT_ON_SCRIPT(pid, "freemode", -1)
         if show_head then
             if is_participant then
                 local pedHead = playerHeads[pid]
                 if pedHead then
-                    local pedHeadTex = PED.GET_PEDHEADSHOT_TXD_STRING(playerHeads[pid])
+                    local pedHeadTex = GET_PEDHEADSHOT_TXD_STRING(playerHeads[pid])
                     if pedHeadTex then
                         local pedHeadX, pedHeadY = directx.pos_hud_to_client(left_offset + posX + icon_w/2, penY + icon_h/2)
-                        GRAPHICS.DRAW_SPRITE(pedHeadTex, pedHeadTex, pedHeadX, pedHeadY, pedHeadW, pedHeadH, 0, 255, 255, 255, 255, false, 0)
+                        DRAW_SPRITE(pedHeadTex, pedHeadTex, pedHeadX, pedHeadY, pedHeadW, pedHeadH, 0, 255, 255, 255, 255, false, 0)
                     end
                 end
             end
             left_offset += icon_w
         end
         directx.draw_rect(left_offset + posX,penY,bar_w,icon_h,bg_r, bg_g, bg_b, bg_a)
-        -- local max_health = PED.GET_PED_MAX_HEALTH(ply_ped) - 100
-        -- local health = (ENTITY.GET_ENTITY_HEALTH(ply_ped) - 100) / max_health
+        -- local max_health = GET_PED_MAX_HEALTH(ply_ped) - 100
+        -- local health = (GET_ENTITY_HEALTH(ply_ped) - 100) / max_health
         -- directx.draw_rect(left_offset + posX,penY,bar_w,icon_h*health,1, 0, 1, 1)
         left_offset += bar_w
         local lightness = even and 0.6 or 0.7
@@ -634,7 +634,7 @@ util.create_tick_handler(function()
         local acc_w = 0
         local voice_anim_state = 0
         local accY = penY + icon_h / 2
-        local is_talking = is_me ? NETWORK.NETWORK_IS_PUSH_TO_TALK_ACTIVE() : NETWORK.NETWORK_IS_PLAYER_TALKING(pid)
+        local is_talking = is_me ? NETWORK_IS_PUSH_TO_TALK_ACTIVE() : NETWORK_IS_PLAYER_TALKING(pid)
         local is_talk_icon_visible = is_talking or show_voice == VOICE_ICON_ON
         local rank = players.get_rank(pid)
         if show_rp ~= RP_ICON_OFF and not (show_rp == RP_ICON_TALKING and is_talk_icon_visible) then
@@ -645,8 +645,8 @@ util.create_tick_handler(function()
             right_pen = right_pen - icon_w
             acc_w += icon_w
         end
-        -- if (blip := HUD.GET_BLIP_FROM_ENTITY(ply_ped)) ~= 0 then
-        --     local txt = HUD.GET_BLIP_SPRITE(blip)
+        -- if (blip := GET_BLIP_FROM_ENTITY(ply_ped)) ~= 0 then
+        --     local txt = GET_BLIP_SPRITE(blip)
         --     local r_w, r_h = directx.get_text_size(txt,rp_scale*2)
         --     r_w = math.max(1,r_w)
         --     directx.draw_text(right_pen + rp_text_offset * icon_w, accY, txt, ALIGN_CENTRE, 1, 1,1,1,1)
@@ -770,8 +770,8 @@ util.create_tick_handler(function()
         penY = nextPenY
     end
     if show_head then
-        GRAPHICS.SET_SCRIPT_GFX_DRAW_ORDER(4)
-        GRAPHICS.SET_SCRIPT_GFX_DRAW_BEHIND_PAUSEMENU(false)
+        SET_SCRIPT_GFX_DRAW_ORDER(4)
+        SET_SCRIPT_GFX_DRAW_BEHIND_PAUSEMENU(false)
     end
     return true
 end)

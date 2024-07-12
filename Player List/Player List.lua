@@ -166,12 +166,12 @@ local aPtr = bPtr+4
     local function game_clr_to_float(r,g,b,a)
         return r/255, g/255, b/255, a/255
     end
-    local function GET_HUD_COLOUR(id)
+    local function get_hud_colour(id)
         GET_HUD_COLOUR(id, rPtr, gPtr, bPtr, aPtr)
         return memory.read_int(rPtr), memory.read_int(gPtr), memory.read_int(bPtr), memory.read_int(aPtr)
     end
-    local function GET_HUD_COLOUR_FLOAT(id)
-        return game_clr_to_float(GET_HUD_COLOUR(id))
+    local function get_hud_colour_float(id)
+        return game_clr_to_float(get_hud_colour(id))
     end
 
     -- I get the freemode color from the menu rather than from the game, because the game likes to override FREEMODE a lot
@@ -573,7 +573,7 @@ util.create_tick_handler(function()
         local left_offset = 0
         local bg_r, bg_g, bg_b, bg_a
         if player_clr_id then
-            bg_r, bg_g, bg_b, bg_a = GET_HUD_COLOUR_FLOAT(player_clr_id)
+            bg_r, bg_g, bg_b, bg_a = get_hud_colour_float(player_clr_id)
         else
             bg_r, bg_g, bg_b, bg_a = fm_r,fm_g,fm_b,fm_a
         end

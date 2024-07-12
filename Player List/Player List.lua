@@ -128,8 +128,12 @@ local CLAN_SYMBOL_OPEN_CREW_OUTLINE<const> = "!"
 -- local fmPedHead<const> = 1666485
 
 -- 1.68 globals
-local fmHud <const> = 1668317
-local fmPedHead<const> = 1680805
+-- local fmHud <const> = 1668317
+-- local fmPedHead<const> = 1680805
+
+-- 1.69 globals
+local fmHud <const> = 1668667
+local fmPedHead<const> = 1681225
 
 local function getPedHeadshotIds()
     local tbl = {}
